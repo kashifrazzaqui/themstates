@@ -73,6 +73,9 @@ class StateMachine:
     def get_current_state(self):
         return self._history[-1][1]
 
+    def get_history(self):
+        return self._history
+
     def _execute_actions(self, event, state, payload):
         for a in self._actions[state]:
             a(event, payload)
@@ -104,4 +107,6 @@ if __name__ == "__main__":
     print(sm.get_last_state())
     sm.handle("gearup", "changed gear")
     print(sm.get_last_state())
+    sm.handle("geardown", "changed gear")
     sm.reset()
+    print(sm.get_history())
