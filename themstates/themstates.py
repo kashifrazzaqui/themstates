@@ -64,6 +64,7 @@ class StateMachine:
         return list(self._actions.keys())
 
     def get_last_state(self):
+        """Returns previous state (not current)"""
         if len(self._history) > 1:
             return self._history[-2][1]
         else:
@@ -98,8 +99,9 @@ if __name__ == "__main__":
 
     sm.start("neutral")
 
+    print(sm.get_last_state())
     sm.handle("gearup", "changed gear")
+    print(sm.get_last_state())
     sm.handle("gearup", "changed gear")
+    print(sm.get_last_state())
     sm.reset()
-
-
