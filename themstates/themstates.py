@@ -5,17 +5,24 @@ class TransitionDefinition(Exception):pass
 class NotCallableAction(Exception):pass
 
 class StateMachine:
+    __INIT = "__INIT"
+    __RESET = "__RESET"
 
     def __init__(self):
+        #key: current state; value set((event, target_state))
         self._transitions = defaultdict(set)
+
+        #key: state; value set((action_functions))
         self._actions = defaultdict(set)
 
+        self._history = [] # list: two-tuple(event, target_state)
+
     def start(self, start_state, payload=None):
-        self._history = []
+        """ Defines and sets up start state of the state machine"""
         self._start_state = start_state
-        self._transitions[start_state] #adds empty transition for start state
-        self._history.append(("__INIT", self._start_state))
-        self._execute_actions(self._start_state, payload)
+        self._transitions[self._start_state] #adds empty transition for start state
+        self._history.append((StateMachine.__INIT, self._start_state))
+        self._execute_actions(StateMachine.__INIT, self._start_state, payload)
 
     def define(self, transition):
         """Adds a transition to the state machine
@@ -44,11 +51,11 @@ class StateMachine:
         for e, t in allowed_events:
             if e == event:
                 self._history.append((e, t))
-                self._execute_actions(t, payload)
+                self._execute_actions(e, t, payload)
 
     def reset(self, payload=None):
-        self._history.append(("__RESET", start_state))
-        self._execute_actions(self._start_state, payload)
+        self._history.append((StateMachine.__RESET, self._start_state))
+        self._execute_actions(StateMachine.__RESET, self._start_state, payload)
 
     def get_states(self):
         return list(self._transitions.keys())
@@ -65,9 +72,9 @@ class StateMachine:
     def get_current_state(self):
         return self._history[-1][1]
 
-    def _execute_actions(self, state, payload):
+    def _execute_actions(self, event, state, payload):
         for a in self._actions[state]:
-            a(payload)
+            a(event, payload)
 
     def _parse_transition(self, t):
         l = [each.strip() for each in t.split("->")]
@@ -83,9 +90,16 @@ if __name__ == "__main__":
     sm.define("first -> gearup -> second")
     sm.define("first -> geardown -> neutral")
     sm.define("second -> geardown -> first")
+
+    def some_action_function(event, payload):
+        print(event, payload)
+
+    sm.add_action("first", some_action_function)
+
     sm.start("neutral")
 
-    sm.add_action("first", lambda x: print(x));
+    sm.handle("gearup", "changed gear")
+    sm.handle("gearup", "changed gear")
+    sm.reset()
 
-    sm.handle("gearup", 8)
 
