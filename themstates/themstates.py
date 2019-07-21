@@ -11,10 +11,8 @@ class StateMachine:
     def __init__(self):
         #key: current state; value set((event, target_state))
         self._transitions = defaultdict(set)
-
         #key: state; value set((action_functions))
         self._actions = defaultdict(set)
-
         self._history = [] # list: two-tuple(event, target_state)
 
     def start(self, start_state, payload=None):
@@ -30,7 +28,7 @@ class StateMachine:
         transition : string
         transition must follow grammar : <state -> event -> new_state>
         """
-        source, event, target = self._parse_transition(transition)
+        source, event, target = self._parse_transition(transition.lower())
         self._transitions[source].add((event, target))
 
     def add_action(self, state, action_fn):
@@ -49,7 +47,7 @@ class StateMachine:
         """
         allowed_events = self._transitions[self.get_current_state()]
         for e, t in allowed_events:
-            if e == event:
+            if e == event.lower():
                 self._history.append((e, t))
                 self._execute_actions(e, t, payload)
 
@@ -63,7 +61,7 @@ class StateMachine:
     def get_actionable_states(self):
         return list(self._actions.keys())
 
-    def get_last_state(self):
+    def get_previous_state(self):
         """Returns previous state (not current)"""
         if len(self._history) > 1:
             return self._history[-2][1]
@@ -78,35 +76,10 @@ class StateMachine:
 
     def _execute_actions(self, event, state, payload):
         for a in self._actions[state]:
-            a(event, payload)
+            a(event.lower(), payload)
 
     def _parse_transition(self, t):
         l = [each.strip() for each in t.split("->")]
         if len(l) is not 3:
             raise TransitionDefinition(t)
         return l[0], l[1], l[2]
-
-
-if __name__ == "__main__":
-    sm = StateMachine()
-
-    sm.define("neutral -> gearup -> first")
-    sm.define("first -> gearup -> second")
-    sm.define("first -> geardown -> neutral")
-    sm.define("second -> geardown -> first")
-
-    def some_action_function(event, payload):
-        print(event, payload)
-
-    sm.add_action("first", some_action_function)
-
-    sm.start("neutral")
-
-    print(sm.get_last_state())
-    sm.handle("gearup", "changed gear")
-    print(sm.get_last_state())
-    sm.handle("gearup", "changed gear")
-    print(sm.get_last_state())
-    sm.handle("geardown", "changed gear")
-    sm.reset()
-    print(sm.get_history())
