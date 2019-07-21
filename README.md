@@ -22,7 +22,7 @@ sm.define('liquid -> vaporize -> gas')
 sm.define('gas -> condense -> liquid')
 sm.define('liquid -> freeze -> solid')
 
-print('All states', sm.get_states()) #Lets see if we have all our 
+print('All states', sm.get_states()) #Lets see if we have all our states
 
 # Generic action that we want to execute on state change
 def some_action_function(event, payload):
