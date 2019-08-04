@@ -17,7 +17,7 @@ class StateMachine:
 
     def start(self, start_state, payload=None):
         """ Defines and sets up start state of the state machine"""
-        self._start_state = start_state
+        self._start_state = start_state.lower()
         self._transitions[self._start_state] #adds empty transition for start state
         self._history.append((StateMachine.__INIT, self._start_state))
         self._execute_actions(StateMachine.__INIT, self._start_state, payload)
